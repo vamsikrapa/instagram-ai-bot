@@ -26,28 +26,47 @@ def extract_text_from_pdf(pdf_content):
         pdf_file = io.BytesIO(pdf_content)
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text() + "\n"
+        print(f"PDF has {len(pdf_reader.pages)} pages")
+        for i, page in enumerate(pdf_reader.pages):
+            page_text = page.extract_text()
+            text += page_text + "\n"
+            print(f"Extracted {len(page_text)} characters from page {i+1}")
         return text
     except Exception as e:
-        print(f"Error extracting PDF: {e}")
+        print(f"❌ Error extracting PDF: {e}")
+        import traceback
+        traceback.print_exc()
         return ""
 
 def load_knowledge_base():
     """Load PDF from environment variable or file"""
     global KNOWLEDGE_BASE
     
-    # You can upload PDF content as base64 in environment variable
-    # Or mount a volume in Render with your PDF
-    pdf_path = os.getenv('PDF_PATH', 'knowledge_base.pdf')
+    # Try multiple possible locations
+    possible_paths = [
+        'knowledge_base.pdf',
+        '/opt/render/project/src/knowledge_base.pdf',
+        os.path.join(os.path.dirname(__file__), 'knowledge_base.pdf'),
+        os.getenv('PDF_PATH', 'knowledge_base.pdf')
+    ]
     
-    if os.path.exists(pdf_path):
-        with open(pdf_path, 'rb') as f:
-            KNOWLEDGE_BASE = extract_text_from_pdf(f.read())
-        print("Knowledge base loaded successfully!")
-    else:
-        print("No PDF found. Bot will work without knowledge base.")
-        KNOWLEDGE_BASE = ""
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Files in current directory: {os.listdir('.')}")
+    
+    for pdf_path in possible_paths:
+        print(f"Trying to load PDF from: {pdf_path}")
+        if os.path.exists(pdf_path):
+            try:
+                with open(pdf_path, 'rb') as f:
+                    KNOWLEDGE_BASE = extract_text_from_pdf(f.read())
+                print(f"✅ Knowledge base loaded successfully from {pdf_path}!")
+                print(f"Knowledge base length: {len(KNOWLEDGE_BASE)} characters")
+                return
+            except Exception as e:
+                print(f"Error loading PDF from {pdf_path}: {e}")
+    
+    print("⚠️ No PDF found in any location. Bot will work without knowledge base.")
+    KNOWLEDGE_BASE = ""
 
 def generate_ai_response(user_message):
     """Generate response using Gemini with knowledge base context"""
