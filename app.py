@@ -156,6 +156,12 @@ def health_check():
         "page_token_configured": bool(PAGE_ACCESS_TOKEN)
     }), 200
 
+@app.route('/privacy', methods=['GET'])
+def privacy_policy():
+    """Privacy policy page"""
+    with open('privacy.html', 'r') as f:
+        return f.read()
+
 @app.route('/', methods=['GET'])
 def home():
     """Home endpoint"""
@@ -163,6 +169,7 @@ def home():
     <h1>Instagram AI Bot is Running! 🤖</h1>
     <p>Your bot is active and ready to respond to Instagram messages.</p>
     <p>Check <a href="/health">/health</a> for system status.</p>
+    <p><a href="/privacy">Privacy Policy</a></p>
     """
 
 if __name__ == '__main__':
