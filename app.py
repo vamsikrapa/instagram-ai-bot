@@ -96,7 +96,8 @@ USER MESSAGE: {user_message}"""
 
 def send_message(recipient_id, message_text):
     """Send message back to Instagram user"""
-    url = f"https://graph.facebook.com/v18.0/me/messages"
+    # Use Instagram-specific endpoint
+    url = f"https://graph.facebook.com/v23.0/me/messages"
     
     headers = {
         "Content-Type": "application/json"
@@ -112,13 +113,19 @@ def send_message(recipient_id, message_text):
     }
     
     try:
+        print(f"Sending message to {recipient_id}...")
         response = requests.post(url, json=data, headers=headers, params=params)
+        print(f"Response status: {response.status_code}")
+        print(f"Response body: {response.text}")
+        
         if response.status_code == 200:
-            print(f"Message sent successfully to {recipient_id}")
+            print(f"✅ Message sent successfully to {recipient_id}")
         else:
-            print(f"Error sending message: {response.status_code} - {response.text}")
+            print(f"❌ Error sending message: {response.status_code} - {response.text}")
     except Exception as e:
-        print(f"Exception sending message: {e}")
+        print(f"❌ Exception sending message: {e}")
+        import traceback
+        traceback.print_exc()
 
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
